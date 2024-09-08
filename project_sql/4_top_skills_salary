@@ -1,0 +1,42 @@
+SELECT 
+   skills,
+   ROUND(AVG(salary_year_avg),0) AS avg_salary
+FROM job_postings_fact
+INNER JOIN skills_job_dim ON job_postings_fact.job_id = skills_job_dim.job_id
+INNER JOIN skills_dim ON skills_job_dim.skill_id = skills_dim.skill_id
+WHERE
+    job_title_short = 'Data Analyst'
+    AND salary_year_avg IS NOT NULL
+    AND job_work_from_home = TRUE
+GROUP BY
+    skills
+ORDER BY
+    avg_salary DESC
+LIMIT 25
+
+/*
+The top-paying skills for data analysts highlight a trend toward emerging technologies, cloud infrastructure, advanced programming, and AI/machine learning tools. Here's a quick breakdown of the trends:
+
+1. Big Data and Data Processing Frameworks:
+PySpark ranks at the top with an average salary of $208,172, reflecting the demand for big data processing capabilities. PySpark is essential for handling large-scale distributed data.
+Databricks ($141,907) also highlights the need for expertise in cloud-based data processing, often used for big data and machine learning.
+2. Version Control and Collaboration Tools:
+Bitbucket ($189,155), Gitlab ($154,500), and Atlassian ($131,162) represent the need for collaboration and version control in data-driven projects. These tools are crucial for teams working together on complex data solutions, particularly in software development and DevOps.
+3. AI and Machine Learning:
+AI platforms like Watson and DataRobot ($160,515 and $155,486, respectively) emphasize the growing importance of artificial intelligence in data analysis, automating insights and predictions.
+Scikit-learn ($125,781) is a core Python library for machine learning, further showing the need for data professionals to implement AI/ML solutions.
+4. Specialized Databases:
+Couchbase ($160,515) and Elasticsearch ($145,000) indicate the demand for expertise in NoSQL and search engine databases, which are essential for handling large, unstructured data.
+5. Programming Languages:
+Swift ($153,750), Golang ($145,000), and Scala ($124,903) show the need for advanced programming skills. While traditionally seen in software development, they are becoming essential for backend data processing and developing scalable solutions.
+6. Data Analysis and Visualization Tools:
+Pandas ($151,821), Numpy ($143,513), and Jupyter ($152,777) are key Python tools used for data manipulation, analysis, and experimentation, which remain central to data analysis workflows.
+MicroStrategy ($121,619) highlights the role of business intelligence (BI) tools in data analysis for visualizing and reporting insights.
+7. Cloud and Infrastructure Skills:
+Kubernetes ($132,500) and GCP (Google Cloud Platform) ($122,500) demonstrate the shift toward cloud and containerized infrastructures, where scalable and efficient data analysis solutions are needed.
+Linux ($136,508) underpins the need for a foundational understanding of operating systems that are common in server and data environments.
+8. Workflow Automation:
+Airflow ($126,103) indicates that workflow automation tools are becoming more valuable for orchestrating complex data pipelines, making it easier to manage and schedule data tasks.
+Conclusion:
+The highest-paying skills reflect a focus on cloud computing, AI/machine learning, big data frameworks, and collaboration tools. Expertise in these areas is critical for landing high-paying roles in data analysis, as companies look for professionals who can manage large datasets, automate workflows, and leverage AI for predictive insights.
+*/
