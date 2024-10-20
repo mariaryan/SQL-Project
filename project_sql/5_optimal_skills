@@ -1,44 +1,102 @@
-WITH skills_demand AS (
-    SELECT 
-        skills_dim.skill_id,
-        skills_dim.skills,
-        COUNT(skills_job_dim.job_id) AS demand_count
-    FROM job_postings_fact
-    INNER JOIN skills_job_dim ON job_postings_fact.job_id = skills_job_dim.job_id
-    INNER JOIN skills_dim ON skills_job_dim.skill_id = skills_dim.skill_id
-    WHERE
-        job_title_short = 'Data Analyst'
-        AND salary_year_avg IS NOT NULL
-        AND job_work_from_home = TRUE
-    GROUP BY
-        skills_dim.skill_id
-), average_salary AS (
-    SELECT 
-    skills_dim.skill_id,
-    AVG(salary_year_avg) AS avg_salary
-    FROM job_postings_fact
-    INNER JOIN skills_job_dim ON job_postings_fact.job_id = skills_job_dim.job_id
-    INNER JOIN skills_dim ON skills_job_dim.skill_id = skills_dim.skill_id
-    WHERE
-        job_title_short = 'Data Analyst'
-        AND salary_year_avg IS NOT NULL
-        AND job_work_from_home = TRUE
-    GROUP BY
-        skills_dim.skill_id
-)
+/*
+Question: What are the most optimal skills to learn (aka it’s in high demand and a high-paying skill) for a data analyst? 
 
-SELECT  
-    skills_demand.skill_id,
-    skills_demand.skills,
-    skills_demand.demand_count,
-    ROUND(average_salary.avg_salary,2) AS avg_salary
-FROM    
-    skills_demand
-INNER JOIN
-    average_salary ON skills_demand.skill_id = average_salary.skill_id
-WHERE
-    demand_count>10
+- Identify skills in high demand and associated with high average salaries for Data Analyst roles
+- Concentrates on remote positions with specified salaries
+- Why? Targets skills that offer job security (high demand) and financial benefits (high salaries), offering strategic insights for career development in data analysis
+*/
+
+WITH skills_demand AS (
+  SELECT
+    skills_dim.skill_id,
+		skills_dim.skills,
+    COUNT(skills_job_dim.job_id) AS demand_count
+  FROM
+    job_postings_fact
+	  INNER JOIN
+	    skills_job_dim ON job_postings_fact.job_id = skills_job_dim.job_id
+	  INNER JOIN
+	    skills_dim ON skills_job_dim.skill_id = skills_dim.skill_id
+  WHERE
+    job_postings_fact.job_title_short = 'Data Analyst'
+		AND job_postings_fact.salary_year_avg IS NOT NULL
+    AND job_postings_fact.job_work_from_home = True
+  GROUP BY
+    skills_dim.skill_id
+),
+-- Skills with high average salaries for Data Analyst roles
+-- Use Query #4 (but modified)
+average_salary AS (
+  SELECT
+    skills_job_dim.skill_id,
+    AVG(job_postings_fact.salary_year_avg) AS avg_salary
+  FROM
+    job_postings_fact
+	  INNER JOIN
+	    skills_job_dim ON job_postings_fact.job_id = skills_job_dim.job_id
+	  -- There's no INNER JOIN to skills_dim because we got rid of the skills_dim.name 
+  WHERE
+    job_postings_fact.job_title_short = 'Data Analyst'
+		AND job_postings_fact.salary_year_avg IS NOT NULL
+    AND job_postings_fact.job_work_from_home = True
+  GROUP BY
+    skills_job_dim.skill_id
+)
+-- Return high demand and high salaries for 10 skills 
+SELECT
+  skills_demand.skills,
+  skills_demand.demand_count,
+  ROUND(average_salary.avg_salary, 2) AS avg_salary --ROUND to 2 decimals 
+FROM
+  skills_demand
+	INNER JOIN
+	  average_salary ON skills_demand.skill_id = average_salary.skill_id
+-- WHERE demand_count > 10
 ORDER BY
-    avg_salary DESC
-    demand_count DESC,
-LIMIT 25
+  demand_count DESC, 
+	avg_salary DESC
+LIMIT 10;
+
+/*
+Key Insights:
+SQL (Demand Count: 398 | Avg Salary: $97,237.16)
+
+SQL is the most in-demand skill, with nearly 400 mentions, emphasizing its role as a fundamental tool for data analysts. SQL is essential for working with relational databases and is required across most data analysis roles. However, its average salary is slightly lower than other technical skills, indicating that while it's a baseline requirement, more specialized skills can lead to higher salaries.
+Excel (Demand Count: 256 | Avg Salary: $87,288.21)
+
+Excel is also in high demand but offers the lowest average salary of the listed skills. This reflects its status as a widely used tool in data analysis but one that's typically associated with less complex or advanced analysis tasks compared to programming languages or machine learning tools.
+Python (Demand Count: 236 | Avg Salary: $101,397.22)
+
+Python commands a higher average salary ($101K), reflecting its importance in automating tasks, handling big data, and performing advanced analytics like machine learning. The demand for Python remains strong, though slightly lower than SQL and Excel, as it's typically used for more complex and technical data analysis work.
+Tableau (Demand Count: 230 | Avg Salary: $99,287.65)
+
+Tableau is a leading tool for data visualization, and the demand (230 listings) is robust. Tableau's salary range shows that professionals who can present data in a clear, insightful manner are highly valued. The tool is particularly useful for roles that require communicating data-driven insights to non-technical stakeholders.
+R (Demand Count: 148 | Avg Salary: $100,498.77)
+
+R is also highly valued for statistical computing and analysis, with an average salary of over $100K. While its demand is lower than Python, it’s a common tool in research and academic settings or industries that rely heavily on statistical models.
+Power BI (Demand Count: 110 | Avg Salary: $97,431.30)
+
+Power BI, similar to Tableau, is a tool for data visualization and business intelligence. While its demand is lower than Tableau, the average salary is still comparable, reflecting its importance for companies working within Microsoft's ecosystem for data reporting and visualization.
+SAS (Demand Count: 63 | Avg Salary: $98,902.37)
+
+SAS is a specialized statistical software tool, primarily used in industries like healthcare and finance. Its demand is relatively low, but the salary range reflects that those with SAS expertise can command higher pay due to the niche nature of the skill.
+PowerPoint (Demand Count: 58 | Avg Salary: $88,701.09)
+
+PowerPoint has a lower demand and is associated with a lower average salary. While useful for presenting data, it’s more of a complementary skill and not a core technical requirement for data analysts.
+Looker (Demand Count: 49 | Avg Salary: $103,795.30)
+
+Looker is a business intelligence and data visualization platform, and it has the highest average salary at over $103K. Though its demand is the lowest on the list, this reflects a trend where highly specialized or emerging tools can command higher pay, especially in companies leveraging cutting-edge BI solutions.
+Key Trends:
+Foundational Skills with Broad Demand:
+
+SQL and Excel are the most in-demand skills, indicating that they are foundational for most data analyst roles. However, they offer slightly lower salaries than more specialized skills.
+Higher Salaries for Advanced Tools:
+
+Python, R, and Looker lead in terms of salary, showcasing the higher pay associated with more advanced technical skills, statistical analysis, and emerging business intelligence tools.
+Visualization and Communication:
+
+Tableau, Power BI, and PowerPoint all underscore the importance of data visualization. While PowerPoint is more common for general presentation purposes, Tableau and Power BI are key tools for creating sophisticated dashboards and reports, with higher average salaries attached to them.
+Specialized Skills Like SAS Command Higher Salaries:
+
+Although tools like SAS and Looker have lower demand, they offer high salaries. This shows that niche expertise can result in premium compensation, especially in industries that rely on specific tools.
+*/
